@@ -22,6 +22,7 @@ code/
 └── src/
     ├── main.py                    # Entry point
     ├── train.py                   # Training loop, evaluation, model saving
+    ├── cross_test.py              # Cross-domain evaluation
     ├── models.py                  # LSTM model definition
     └── utils.py                   # Data loading, preprocessing, argument parsing
 ```
@@ -118,6 +119,53 @@ Each `metrics.json` contains:
 ```
 
 **Logs:** `src/logs/exp{N}_log_{timestamp}.log`
+
+---
+
+## Cross-Domain Evaluation
+
+After training, use `cross_test.py` to test a model on domains it was not trained on.
+
+### Modes
+
+**`single`** — load one specific model and test it on one or all domains:
+```bash
+cd src/
+
+# Test dis_flooding_15_gc model against all 48 domains
+python cross_test.py --mode single --model_exp 1 --model_domain dis_flooding_15_gc
+
+# Test against a specific domain only
+python cross_test.py --mode single --model_exp 1 --model_domain dis_flooding_15_gc --test_domain blackhole_15_gc
+```
+
+**`sweep`** — iterate over every model in an experiment and test each across all (or one) domain:
+```bash
+# All 48 models × all 48 domains
+python cross_test.py --mode sweep --model_exp 1
+
+# All models, tested on one domain only
+python cross_test.py --mode sweep --model_exp 1 --test_domain dis_flooding_15_gc
+```
+
+### Cross-Test Arguments
+
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `--mode` | yes | `single` or `sweep` |
+| `--model_exp` | yes | Experiment the model(s) were trained in (e.g. `1`) |
+| `--model_domain` | single mode | Domain name of the model to load |
+| `--test_domain` | no | Domain to test on: `all` (default) or a specific name |
+| `--exp_no` | no | Feature experiment for data loading (defaults to `--model_exp`) |
+| `--window_size` | no | Must match training (default `10`) |
+| `--hidden_size` | no | Must match training (default `10`) |
+
+### Cross-Test Results
+
+Results saved per model–domain pair:
+```
+results/cross_test/exp{model_exp}/{model_domain}/vs_{test_domain}.json
+```
 
 ---
 
